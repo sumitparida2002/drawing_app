@@ -16,8 +16,7 @@ import { Input } from "../ui/input";
 import { Slider } from "../ui/slider";
 
 const LineWidthPicker = () => {
-  const { PENCIL, changeLineWidth } = useToolboxStore();
-  const { size } = PENCIL;
+  const { changeLineWidth, lineWidth } = useToolboxStore();
 
   const ref = useRef<HTMLDivElement>(null);
 
@@ -45,7 +44,7 @@ const LineWidthPicker = () => {
           min={1}
           max={20}
           step={1}
-          defaultValue={[size]}
+          defaultValue={[lineWidth]}
           onValueChange={(e) => {
             changeLineWidth(e[0]);
           }}

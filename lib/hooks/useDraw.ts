@@ -1,190 +1,212 @@
-// import { useState } from 'react';
+import { useState } from "react";
+import { useBoardPosition } from "./useBoardPos";
+import { useRoomStore } from "./use-room-store";
+import { useViewportSize } from "./useViewportSize";
+import { useToolboxStore } from "./use-toolbox-store";
+import { useRoom } from "@/providers/room-provider";
+import {
+  drawCircle,
+  drawLine,
+  drawRect,
+  rgbaToString,
+} from "../helpers/boardHelpers";
+import { getPos } from "../getPos";
+import { useSocket } from "@/providers/socket-provider";
+import { Move } from "@/types";
+import { DEFAULT_MOVE } from "@/constants/defaultMove";
+import { useSavedMovesStore } from "./saved-moves-store";
 
-// import { DEFAULT_MOVE } from '@/common/constants/defaultMove';
-// import { useViewportSize } from '@/common/hooks/useViewportSize';
-// import { getPos } from '@/common/lib/getPos';
-// import { getStringFromRgba } from '@/common/lib/rgba';
-// import { socket } from '@/common/lib/socket';
-// import { useOptionsValue } from '@/common/recoil/options';
-// import { useSetSelection } from '@/common/recoil/options/options.hooks';
-// import { useMyMoves } from '@/common/recoil/room';
-// import { useSetSavedMoves } from '@/common/recoil/savedMoves';
-// import { Move } from '@/common/types/global';
+let tempMoves: [number, number][] = [];
+let tempCircle = { cX: 0, cY: 0, radiusX: 0, radiusY: 0 };
+let tempSize = { width: 0, height: 0 };
+let tempImageData: ImageData | undefined;
 
-// import { drawRect, drawCircle, drawLine } from '../helpers/Canvas.helpers';
-// import { useBoardPosition } from './useBoardPosition';
-// import { useCtx } from './useCtx';
+export const useDraw = (blocked: boolean, id: string) => {
+  const { socket } = useSocket();
+  const boardPosition = useBoardPosition();
+  const { clearSavedMoves } = useSavedMovesStore();
+  const { addMyMove } = useRoomStore();
 
-// let tempMoves: [number, number][] = [];
-// let tempCircle = { cX: 0, cY: 0, radiusX: 0, radiusY: 0 };
-// let tempSize = { width: 0, height: 0 };
-// let tempImageData: ImageData | undefined;
+  const { canvasRef } = useRoom();
+  const canvas = canvasRef.current;
+  const ctx = canvas?.getContext("2d");
+  const vw = useViewportSize();
 
-// export const useDraw = (blocked: boolean) => {
-//   const options = useOptionsValue();
-//   const boardPosition = useBoardPosition();
-//   const { clearSavedMoves } = useSetSavedMoves();
-//   const { handleAddMyMove } = useMyMoves();
-//   const { setSelection, clearSelection } = useSetSelection();
-//   const vw = useViewportSize();
+  const {
+    shape,
+    mode,
+    lineWidth,
+    lineColor,
+    fillColor,
+    selection,
+    setSelection,
+    clearSelection,
+  } = useToolboxStore();
 
-//   const movedX = boardPosition.x;
-//   const movedY = boardPosition.y;
+  const options = {
+    lineColor,
+    fillColor,
+    lineWidth,
+    mode,
+    shape,
+    selection,
+  };
 
-//   const [drawing, setDrawing] = useState(false);
-//   const ctx = useCtx();
+  const movedX = boardPosition.x;
+  const movedY = boardPosition.y;
 
-//   const setupCtxOptions = () => {
-//     if (ctx) {
-//       ctx.lineWidth = options.lineWidth;
-//       ctx.strokeStyle = getStringFromRgba(options.lineColor);
-//       ctx.fillStyle = getStringFromRgba(options.fillColor);
-//       if (options.mode === 'eraser')
-//         ctx.globalCompositeOperation = 'destination-out';
-//       else ctx.globalCompositeOperation = 'source-over';
-//     }
-//   };
+  const [drawing, setDrawing] = useState(false);
 
-//   const drawAndSet = () => {
-//     if (!tempImageData)
-//       tempImageData = ctx?.getImageData(
-//         movedX.get() * -1,
-//         movedY.get() * -1,
-//         vw.width,
-//         vw.height
-//       );
+  const setupCtxOptions = () => {
+    if (ctx) {
+      ctx.lineWidth = lineWidth;
+      ctx.strokeStyle = rgbaToString(lineColor);
+      ctx.fillStyle = rgbaToString(fillColor);
+      if (mode === "eraser") ctx.globalCompositeOperation = "destination-out";
+      else ctx.globalCompositeOperation = "source-over";
+    }
+  };
 
-//     if (tempImageData)
-//       ctx?.putImageData(tempImageData, movedX.get() * -1, movedY.get() * -1);
-//   };
+  const drawAndSet = () => {
+    if (!tempImageData)
+      tempImageData = ctx?.getImageData(
+        movedX.get() * -1,
+        movedY.get() * -1,
+        vw.width,
+        vw.height
+      );
 
-//   const handleStartDrawing = (x: number, y: number) => {
-//     if (!ctx || blocked || blocked) return;
+    if (tempImageData)
+      ctx?.putImageData(tempImageData, movedX.get() * -1, movedY.get() * -1);
+  };
 
-//     const [finalX, finalY] = [getPos(x, movedX), getPos(y, movedY)];
+  const handleStartDrawing = (x: number, y: number) => {
+    if (!ctx || blocked || blocked) return;
 
-//     setDrawing(true);
-//     setupCtxOptions();
-//     drawAndSet();
+    const [finalX, finalY] = [getPos(x, movedX), getPos(y, movedY)];
 
-//     if (options.shape === 'line' && options.mode !== 'select') {
-//       ctx.beginPath();
-//       ctx.lineTo(finalX, finalY);
-//       ctx.stroke();
-//     }
+    setDrawing(true);
+    setupCtxOptions();
+    drawAndSet();
 
-//     tempMoves.push([finalX, finalY]);
-//   };
+    if (shape === "line" && mode !== "select") {
+      ctx.beginPath();
+      ctx.lineTo(finalX, finalY);
+      ctx.stroke();
+    }
 
-//   const handleDraw = (x: number, y: number, shift?: boolean) => {
-//     if (!ctx || !drawing || blocked) return;
+    tempMoves.push([finalX, finalY]);
+  };
 
-//     const [finalX, finalY] = [getPos(x, movedX), getPos(y, movedY)];
+  const handleDraw = (x: number, y: number, shift?: boolean) => {
+    if (!ctx || !drawing || blocked) return;
 
-//     drawAndSet();
+    const [finalX, finalY] = [getPos(x, movedX), getPos(y, movedY)];
 
-//     if (options.mode === 'select') {
-//       ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-//       drawRect(ctx, tempMoves[0], finalX, finalY, false, true);
-//       tempMoves.push([finalX, finalY]);
+    drawAndSet();
 
-//       setupCtxOptions();
+    if (mode === "select") {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
+      drawRect(ctx, tempMoves[0], finalX, finalY, false, true);
+      tempMoves.push([finalX, finalY]);
 
-//       return;
-//     }
+      setupCtxOptions();
 
-//     switch (options.shape) {
-//       case 'line':
-//         if (shift) tempMoves = tempMoves.slice(0, 1);
+      return;
+    }
 
-//         drawLine(ctx, tempMoves[0], finalX, finalY, shift);
+    switch (shape) {
+      case "line":
+        if (shift) tempMoves = tempMoves.slice(0, 1);
 
-//         tempMoves.push([finalX, finalY]);
-//         break;
+        drawLine(ctx, tempMoves[0], finalX, finalY, shift);
 
-//       case 'circle':
-//         tempCircle = drawCircle(ctx, tempMoves[0], finalX, finalY, shift);
-//         break;
+        tempMoves.push([finalX, finalY]);
+        break;
 
-//       case 'rect':
-//         tempSize = drawRect(ctx, tempMoves[0], finalX, finalY, shift);
-//         break;
+      case "circle":
+        tempCircle = drawCircle(ctx, tempMoves[0], finalX, finalY, shift);
+        break;
 
-//       default:
-//         break;
-//     }
-//   };
+      case "rectangle":
+        tempSize = drawRect(ctx, tempMoves[0], finalX, finalY, shift);
+        break;
 
-//   const clearOnYourMove = () => {
-//     drawAndSet();
-//     tempImageData = undefined;
-//   };
+      default:
+        break;
+    }
+  };
 
-//   const handleEndDrawing = () => {
-//     if (!ctx || blocked) return;
+  const clearOnYourMove = () => {
+    drawAndSet();
+    tempImageData = undefined;
+  };
 
-//     setDrawing(false);
+  const handleEndDrawing = () => {
+    if (!ctx || blocked) return;
 
-//     ctx.closePath();
+    setDrawing(false);
 
-//     let addMove = true;
-//     if (options.mode === 'select' && tempMoves.length) {
-//       clearOnYourMove();
-//       let x = tempMoves[0][0];
-//       let y = tempMoves[0][1];
-//       let width = tempMoves[tempMoves.length - 1][0] - x;
-//       let height = tempMoves[tempMoves.length - 1][1] - y;
+    ctx.closePath();
 
-//       if (width < 0) {
-//         width -= 4;
-//         x += 2;
-//       } else {
-//         width += 4;
-//         x -= 2;
-//       }
-//       if (height < 0) {
-//         height -= 4;
-//         y += 2;
-//       } else {
-//         height += 4;
-//         y -= 2;
-//       }
+    let addMove = true;
+    if (mode === "select" && tempMoves.length) {
+      clearOnYourMove();
+      let x = tempMoves[0][0];
+      let y = tempMoves[0][1];
+      let width = tempMoves[tempMoves.length - 1][0] - x;
+      let height = tempMoves[tempMoves.length - 1][1] - y;
 
-//       if ((width < 4 || width > 4) && (height < 4 || height > 4))
-//         setSelection({ x, y, width, height });
-//       else {
-//         clearSelection();
-//         addMove = false;
-//       }
-//     }
+      if (width < 0) {
+        width -= 4;
+        x += 2;
+      } else {
+        width += 4;
+        x -= 2;
+      }
+      if (height < 0) {
+        height -= 4;
+        y += 2;
+      } else {
+        height += 4;
+        y -= 2;
+      }
 
-//     const move: Move = {
-//       ...DEFAULT_MOVE,
-//       rect: {
-//         ...tempSize,
-//       },
-//       circle: {
-//         ...tempCircle,
-//       },
-//       path: tempMoves,
-//       options,
-//     };
+      if ((width < 4 || width > 4) && (height < 4 || height > 4))
+        setSelection({ x, y, width, height });
+      else {
+        clearSelection();
+        addMove = false;
+      }
+    }
 
-//     tempMoves = [];
-//     tempCircle = { cX: 0, cY: 0, radiusX: 0, radiusY: 0 };
-//     tempSize = { width: 0, height: 0 };
+    const move: Move = {
+      ...DEFAULT_MOVE,
+      rect: {
+        ...tempSize,
+      },
+      circle: {
+        ...tempCircle,
+      },
+      path: tempMoves,
+      options,
+    };
 
-//     if (options.mode !== 'select') {
-//       socket.emit('draw', move);
-//       clearSavedMoves();
-//     } else if (addMove) handleAddMyMove(move);
-//   };
+    tempMoves = [];
+    tempCircle = { cX: 0, cY: 0, radiusX: 0, radiusY: 0 };
+    tempSize = { width: 0, height: 0 };
 
-//   return {
-//     handleEndDrawing,
-//     handleDraw,
-//     handleStartDrawing,
-//     drawing,
-//     clearOnYourMove,
-//   };
-// };
+    if (mode !== "select") {
+      socket.emit("draw", { move, id });
+      clearSavedMoves();
+    } else if (addMove) addMyMove(move);
+  };
+
+  return {
+    handleEndDrawing,
+    handleDraw,
+    handleStartDrawing,
+    drawing,
+    clearOnYourMove,
+  };
+};

@@ -5,17 +5,14 @@ import { AiOutlineSelect } from "react-icons/ai";
 import { BsPencilFill } from "react-icons/bs";
 import { FaEraser } from "react-icons/fa";
 
-// import { useOptions, useSetSelection } from '@/common/recoil/options';
-
 const ModePicker = () => {
-  const { mode, changeMode } = useToolboxStore();
-  //   const { clearSelection } = useSetSelection();
+  const { mode, changeMode, clearSelection } = useToolboxStore();
 
-  //   useEffect(() => {
-  //     clearSelection();
+  useEffect(() => {
+    clearSelection();
 
-  //     // eslint-disable-next-line react-hooks/exhaustive-deps
-  //   }, [options.mode]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
 
   return (
     <>
@@ -42,17 +39,14 @@ const ModePicker = () => {
       </button>
 
       <button
-      // className={`btn-icon text-2xl ${
-      //   options.mode === "select" && "bg-green-400"
-      // }`}
-      // onClick={() => {
-      //   setOptions((prev) => ({
-      //     ...prev,
-      //     mode: "select",
-      //   }));
-      // }}
+        onClick={() => {
+          changeMode("select");
+        }}
       >
-        <AiOutlineSelect />
+        <AiOutlineSelect
+          className={`btn-icon text-xl 
+          ${mode === "select" && "text-green-400/100"}`}
+        />
       </button>
     </>
   );

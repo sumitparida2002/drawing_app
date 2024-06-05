@@ -6,8 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { ActionTooltip } from "./action-tooltip";
 
 const UserList = () => {
-  const { Room } = useRoomStore();
-  const { users } = Room;
+  const { users } = useRoomStore();
 
   if (!users) return;
 

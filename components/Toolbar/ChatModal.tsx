@@ -17,8 +17,7 @@ import { ChatMessages } from "../Chat/chat-messages";
 import { useRoomStore } from "@/lib/hooks/use-room-store";
 
 function ChatModal() {
-  const { Room } = useRoomStore();
-  const { id, name, userId } = Room;
+  const { id, name, userId } = useRoomStore();
 
   const room = {
     id,

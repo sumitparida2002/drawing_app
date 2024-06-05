@@ -10,7 +10,7 @@ import { useToolboxStore } from "@/lib/hooks/use-toolbox-store";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
 const ColorPicker = () => {
-  const { changeColor, PENCIL } = useToolboxStore();
+  const { changeColor, lineColor } = useToolboxStore();
 
   const ref = useRef<HTMLDivElement>(null);
 
@@ -31,7 +31,7 @@ const ColorPicker = () => {
       </PopoverTrigger>
       <PopoverContent className="w-fit  border-0 ">
         <RgbaColorPicker
-          color={PENCIL.color}
+          color={lineColor}
           onChange={(e) => {
             changeColor(e);
           }}

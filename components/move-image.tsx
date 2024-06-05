@@ -99,8 +99,7 @@ export const MoveImage = () => {
   const { canvasRef } = useRoom();
   let context = null;
   const { socket } = useSocket();
-  const { Room } = useRoomStore();
-  const { id } = Room;
+  const { id } = useRoomStore();
 
   const handleDrawImage = (image, x, y) => {
     context.drawImage(image, x, y);

@@ -4,8 +4,8 @@ import { FaRedo, FaUndo } from "react-icons/fa";
 
 const HistoryBtns = () => {
   const { canvasRef } = useRoom();
-  const { Room, setHistoryPointer } = useRoomStore();
-  const { drawHistory, historyPointer } = Room;
+  const { setHistoryPointer, drawHistory, historyPointer } = useRoomStore();
+
   const canvas = canvasRef.current;
   const context = canvas?.getContext("2d");
 

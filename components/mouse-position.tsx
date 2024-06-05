@@ -28,7 +28,7 @@ const MousePosition = () => {
       // &&
       // !touchDevice
     ) {
-      socket.emit("mouse_move", getPos(docX, x), getPos(docY, y));
+      socket.emit("mouse_moved", getPos(docX, x), getPos(docY, y));
       prevPosition.current = { x: docX, y: docY };
     }
   }, 150);

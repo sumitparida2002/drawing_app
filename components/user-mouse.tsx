@@ -19,7 +19,7 @@ const UserMouse = ({ userId }: { userId: string }) => {
   const [pos, setPos] = useState({ x: -1, y: -1 });
 
   useEffect(() => {
-    socket.on("mouse_moved", (newX, newY, socketIdMoved) => {
+    socket.on("mouse_moved", (newX: any, newY: any, socketIdMoved: string) => {
       if (socketIdMoved === userId) {
         setPos({ x: newX, y: newY });
       }

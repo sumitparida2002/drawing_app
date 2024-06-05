@@ -4,7 +4,7 @@ import { NextApiResponse } from "next";
 import { RgbaColor } from "react-colorful";
 
 export type CtxMode = "eraser" | "draw" | "select";
-export type Shape = "line" | "circle" | "rect" | "image";
+export type Shape = "line" | "circle" | "rectangle" | "image";
 
 export interface CtxOptions {
   lineWidth: number;

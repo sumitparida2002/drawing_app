@@ -20,33 +20,49 @@ const ioHandler = async (req: NextApiRequest, res: NextApiResponseServerIo) => {
     });
     io.on("connection", (socket) => {
       socket.on("joinRoom", (roomId) => {
-        console.log(roomId);
         socket.join(roomId);
+
         io.to(roomId).emit("new_user", () => {});
       });
 
-      // socket.on("mouse_move", (x, y, roomId) => {
-      //   socket.broadcast.to(roomId).emit("mouse_moved", x, y, socket.id);
+      socket.on("mouse_moved", (x, y, roomId) => {
+        socket.broadcast.to(roomId).emit("mouse_moved", x, y, socket.id);
+      });
+
+      // socket.on("beginPath", (data) => {
+      //   io.to(data.id).emit("beginPath", data);
       // });
 
-      socket.on("beginPath", (data) => {
-        io.to(data.id).emit("beginPath", data);
-      });
+      // socket.on("drawLine", (data) => {
+      //   io.to(data.id).emit("drawLine", data);
+      // });
 
-      socket.on("drawLine", (data) => {
-        io.to(data.id).emit("drawLine", data);
-      });
+      // socket.on("drawRect", (data) => {
+      //   io.to(data.id).emit("drawRect", data);
+      // });
 
-      socket.on("drawRect", (data) => {
-        io.to(data.id).emit("drawRect", data);
-      });
+      // socket.on("drawCircle", (data) => {
+      //   io.to(data.id).emit("drawCircle", data);
+      // });
 
-      socket.on("drawCircle", (data) => {
-        io.to(data.id).emit("drawCircle", data);
-      });
+      // socket.on("drawImage", (data) => {
+      //   io.to(data.id).emit("drawImage", data);
+      // });
 
-      socket.on("drawImage", (data) => {
-        io.to(data.id).emit("drawImage", data);
+      socket.on("draw", (data) => {
+        let roomId = data.id;
+        let move = data.move;
+        const timestamp = Date.now();
+
+        // eslint-disable-next-line no-param-reassign
+
+        // addMove(roomId, socket.id, { ...move, timestamp });
+
+        io.to(socket.id).emit("your_move", { ...move, timestamp });
+
+        socket.broadcast
+          .to(roomId)
+          .emit("user_draw", { ...move, timestamp }, socket.id);
       });
       socket.on("disconnect", () => {
         console.log("hey disconnected");

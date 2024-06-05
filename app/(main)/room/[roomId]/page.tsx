@@ -15,6 +15,7 @@ import MousePosition from "@/components/mouse-position";
 import { ChatInput } from "@/components/Chat/chat-input";
 import { ChatMessages } from "@/components/Chat/chat-messages";
 import { ChatHeader } from "@/components/Chat/chat-header";
+import SelectionBtns from "@/components/Toolbar/SelectionBtns";
 
 interface RoomIdPageParams {
   params: {
@@ -43,6 +44,7 @@ async function RoomIdPage({ params }: RoomIdPageParams) {
         <Board />
         <MousePosition />
         <Toolbar />
+        <SelectionBtns />
       </div>
     </RoomContextProvider>
   );
