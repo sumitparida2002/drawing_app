@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
 const ShapeSelector = () => {
   //   const [options, setOptions] = useOptions();
-  const { currentShape, changeShape } = useToolboxStore();
+  const { shape, changeShape } = useToolboxStore();
 
   const ref = useRef<HTMLDivElement>(null);
 
@@ -28,15 +28,15 @@ const ShapeSelector = () => {
           // disabled={options.mode === 'select'}
           onClick={() => setOpened((prev) => !prev)}
         >
-          {currentShape === "circle" && <BsCircle />}
-          {currentShape === "rectangle" && <BiRectangle />}
-          {currentShape === "pencil" && <CgShapeZigzag />}
+          {shape === "circle" && <BsCircle />}
+          {shape === "rectangle" && <BiRectangle />}
+          {shape === "line" && <CgShapeZigzag />}
         </button>
       </PopoverTrigger>
       <PopoverContent className="flex flex-col w-fit bg-zinc-900 text-white gap-2">
         <button
           className="btn-icon text-2xl"
-          onClick={() => changeShape("pencil")}
+          onClick={() => changeShape("line")}
         >
           <CgShapeZigzag />
         </button>

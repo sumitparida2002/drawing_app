@@ -1,15 +1,11 @@
 import { useEffect, useMemo } from "react";
 
-import { toast } from "react-toastify";
-
-import { DEFAULT_MOVE } from "@/common/constants/defaultMove";
-import { socket } from "@/common/lib/socket";
-import { useOptionsValue } from "@/common/recoil/options";
-import { Move } from "@/common/types/global";
-
-import { useMoveImage } from "../../../hooks/useMoveImage";
-import { useRefs } from "../../../hooks/useRefs";
-import { useCtx } from "./useCtx";
+import { DEFAULT_MOVE } from "@/constants/defaultMove";
+import { useSocket } from "@/providers/socket-provider";
+import { useRoom } from "@/providers/room-provider";
+import { useImageStore } from "./use-image-store";
+import { Move } from "@/types";
+import { useToolboxStore } from "./use-toolbox-store";
 
 let tempSelection = {
   x: 0,
@@ -19,11 +15,13 @@ let tempSelection = {
 };
 
 export const useSelection = (drawAllMoves: () => Promise<void>) => {
-  const ctx = useCtx();
-  const options = useOptionsValue();
+  const { socket } = useSocket();
+  const options = useToolboxStore(); //Fix
   const { selection } = options;
-  const { bgRef, selectionRefs } = useRefs();
-  const { setMoveImage } = useMoveImage();
+  const { bgRef, selectionRefs, canvasRef } = useRoom();
+  const canvas = canvasRef.current;
+  const ctx = canvas?.getContext("2d");
+  const { addImage } = useImageStore();
 
   useEffect(() => {
     const callback = async () => {
@@ -165,7 +163,7 @@ export const useSelection = (drawAllMoves: () => Promise<void>) => {
       path: [[x, y]],
       options: {
         ...options,
-        shape: "rect",
+        shape: "rectangle",
         mode: "eraser",
         fillColor: { r: 0, g: 0, b: 0, a: 1 },
       },
@@ -188,10 +186,10 @@ export const useSelection = (drawAllMoves: () => Promise<void>) => {
           }),
         ])
         .then(() => {
-          toast("Copied to clipboard!", {
-            position: "top-center",
-            theme: "colored",
-          });
+          // toast("Copied to clipboard!", {
+          //   position: "top-center",
+          //   theme: "colored",
+          // });
         });
   };
 
@@ -223,7 +221,7 @@ export const useSelection = (drawAllMoves: () => Promise<void>) => {
 
           if (base64) {
             createDeleteMove();
-            setMoveImage({
+            addImage({
               base64,
               x: Math.min(x, x + width),
               y: Math.min(y, y + height),
@@ -257,6 +255,6 @@ export const useSelection = (drawAllMoves: () => Promise<void>) => {
     makeBlob,
     selection,
     selectionRefs,
-    setMoveImage,
+    addImage,
   ]);
 };

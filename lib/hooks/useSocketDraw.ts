@@ -1,3 +1,5 @@
+"use client";
+
 import { useRoom } from "@/providers/room-provider";
 import { useSocket } from "@/providers/socket-provider";
 import { Move } from "@/types";
@@ -15,6 +17,7 @@ export const useSocketDraw = (drawing: boolean) => {
     let userIdLater = "";
 
     socket.on("user_draw", (move, userId) => {
+      console.log("in draw 2");
       if (!drawing) {
         addMoveToUser(userId, move);
       } else {

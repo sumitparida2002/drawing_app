@@ -20,26 +20,22 @@ import { useUser } from "@clerk/nextjs";
 import { BsArrowsMove } from "react-icons/bs";
 import { useDraw } from "@/lib/hooks/useDraw";
 import { useSocketDraw } from "@/lib/hooks/useSocketDraw";
+import { useBoardPosition } from "@/lib/hooks/useBoardPos";
+import { useMovesHandlers } from "@/lib/hooks/useMovesHandler";
 
 const Board = () => {
   const { socket } = useSocket();
+  const { canvasRef, bgRef, undoRef, redoRef } = useRoom();
+
+  const { width, height } = useViewportSize();
+
+  const { x, y } = useBoardPosition();
+  const canvas = canvasRef.current;
+  const ctx = canvas?.getContext("2d");
 
   const [dragging, setDragging] = useState(true);
-  const { width, height } = useViewportSize();
-  const { isSignedIn, user } = useUser();
 
-  const { shape } = useToolboxStore();
-
-  const { canvasRef, shouldDraw } = useRoom();
-
-  const {
-    drawHistory,
-    historyPointer,
-    id,
-    addDrawHistory,
-    setRoom,
-    setHistoryPointer,
-  } = useRoomStore();
+  const { id } = useRoomStore();
 
   const {
     handleEndDrawing,
@@ -48,15 +44,29 @@ const Board = () => {
     drawing,
     clearOnYourMove,
   } = useDraw(dragging, id);
+
   useSocketDraw(drawing);
 
-  // useEffect(() => {
-  //   if (!user) return;
-
-  //   setDragging(false);
-  // }, [isSignedIn]);
-
   const dragControls = useDragControls();
+
+  const { handleUndo, handleRedo } = useMovesHandlers(clearOnYourMove);
+
+  useEffect(() => {
+    setDragging(false);
+  }, []);
+
+  useEffect(() => {
+    const undoBtn = undoRef.current;
+    const redoBtn = redoRef.current;
+
+    undoBtn?.addEventListener("click", handleUndo);
+    redoBtn?.addEventListener("click", handleRedo);
+
+    return () => {
+      undoBtn?.removeEventListener("click", handleUndo);
+      redoBtn?.removeEventListener("click", handleRedo);
+    };
+  }, [canvasRef, dragging, handleRedo, handleUndo, redoRef, undoRef]);
 
   // useEffect(() => {
   //   if (!canvasRef.current) return;
@@ -254,6 +264,7 @@ const Board = () => {
         onMouseDown={(e) => {
           if (e.button === 2) {
             setDragging(true);
+
             dragControls.start(e);
           } else handleStartDrawing(e.clientX, e.clientY);
         }}

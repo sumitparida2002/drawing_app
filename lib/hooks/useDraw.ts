@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { useBoardPosition } from "./useBoardPos";
 import { useRoomStore } from "./use-room-store";
@@ -197,6 +199,7 @@ export const useDraw = (blocked: boolean, id: string) => {
     tempSize = { width: 0, height: 0 };
 
     if (mode !== "select") {
+      console.log("what");
       socket.emit("draw", { move, id });
       clearSavedMoves();
     } else if (addMove) addMyMove(move);

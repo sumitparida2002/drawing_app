@@ -174,6 +174,7 @@ export const useRoomStore = create<RoomState & RoomActions>((set) => ({
   addMyMove: (move) => {
     set((state) => {
       const myMoves = [...state.myMoves];
+      console.log(myMoves);
       if (myMoves[myMoves.length - 1]?.options.mode === "select") {
         myMoves[myMoves.length - 1] = move;
       } else {

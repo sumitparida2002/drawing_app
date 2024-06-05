@@ -1,13 +1,31 @@
 import { Server as NetServer } from "http";
 import { Server as ServerIO } from "socket.io";
 import { NextApiRequest } from "next";
-import { NextApiResponseServerIo } from "@/types";
+import { Move, NextApiResponseServerIo, Room } from "@/types";
 
 export const config = {
   api: {
     bodyParser: false,
   },
 };
+
+const rooms = new Map<string, Room>();
+
+// const addMove = (roomId: string, socketId: string, move: Move) => {
+//   const room = rooms.get(roomId)!;
+
+//   if (!room.users.has(socketId)) {
+//     room.usersMoves.set(socketId, [move]);
+//   }
+
+//   room.usersMoves.get(socketId)!.push(move);
+// };
+
+// const undoMove = (roomId: string, socketId: string) => {
+//   const room = rooms.get(roomId)!;
+
+//   room.usersMoves.get(socketId)!.pop();
+// };
 
 const ioHandler = async (req: NextApiRequest, res: NextApiResponseServerIo) => {
   if (!res.socket?.server?.io) {
@@ -50,19 +68,19 @@ const ioHandler = async (req: NextApiRequest, res: NextApiResponseServerIo) => {
       // });
 
       socket.on("draw", (data) => {
+        console.log("i io");
+
         let roomId = data.id;
         let move = data.move;
         const timestamp = Date.now();
-
+        console.log(move);
         // eslint-disable-next-line no-param-reassign
 
         // addMove(roomId, socket.id, { ...move, timestamp });
 
-        io.to(socket.id).emit("your_move", { ...move, timestamp });
+        // io.to(socket.id).emit("your_move", { ...move, timestamp });
 
-        socket.broadcast
-          .to(roomId)
-          .emit("user_draw", { ...move, timestamp }, socket.id);
+        io.to(roomId).emit("user_draw", { ...move, timestamp }, socket.id);
       });
       socket.on("disconnect", () => {
         console.log("hey disconnected");
