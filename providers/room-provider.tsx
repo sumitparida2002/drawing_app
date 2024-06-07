@@ -1,8 +1,126 @@
 "use client";
 
+// import {
+//   createContext,
+//   Dispatch,
+//   RefObject,
+//   SetStateAction,
+//   useContext,
+//   useEffect,
+//   useRef,
+//   useState,
+// } from "react";
+
+// import { MotionValue, useMotionValue } from "framer-motion";
+
+// import { COLORS_ARRAY } from "@/constants/colors";
+// import { useUser } from "@clerk/nextjs";
+// import { useSocket } from "./socket-provider";
+// // import { useSetRoom, useRoom } from "@/common/recoil/room/room.hooks";
+// import { Move, User } from "@/types";
+
+// import { toast } from "sonner";
+// import { useRoomStore } from "@/stores/use-room-store";
+
+// export const roomContext = createContext<{
+//   x: MotionValue<number>;
+//   y: MotionValue<number>;
+//   undoRef: RefObject<HTMLButtonElement>;
+//   redoRef: RefObject<HTMLButtonElement>;
+//   canvasRef: RefObject<HTMLCanvasElement>;
+//   bgRef: RefObject<HTMLCanvasElement>;
+//   selectionRefs: RefObject<HTMLButtonElement[]>;
+//   minimapRef: RefObject<HTMLCanvasElement>;
+//   drawHistory: RefObject<any>;
+//   historyPointer: RefObject<number | null>;
+//   shouldDraw: RefObject<boolean>;
+// }>(null!);
+
+// export const useRoom = () => {
+//   return useContext(roomContext);
+// };
+
+// const RoomContextProvider = ({
+//   children,
+//   room,
+// }: {
+//   children: React.ReactNode;
+//   room: any;
+// }) => {
+//   const { socket } = useSocket();
+
+//   const { user } = useUser();
+
+//   const undoRef = useRef<HTMLButtonElement>(null);
+//   const redoRef = useRef<HTMLButtonElement>(null);
+//   const canvasRef = useRef<HTMLCanvasElement>(null);
+//   const bgRef = useRef<HTMLCanvasElement>(null);
+//   const minimapRef = useRef<HTMLCanvasElement>(null);
+//   const selectionRefs = useRef<HTMLButtonElement[]>([]);
+//   const drawHistory = useRef<any>([]);
+//   const historyPointer = useRef<number>(0);
+//   const shouldDraw = useRef<boolean>(false);
+
+//   const { addUser, removeUser, setRoomId } = useRoomStore();
+
+//   const x = useMotionValue(0);
+//   const y = useMotionValue(0);
+//   const {} = useRoomStore();
+
+//   useEffect(() => {
+//     if (!user || !canvasRef.current || socket) {
+//       return;
+//     }
+
+//     const canvas = canvasRef.current;
+//     const context = canvas.getContext("2d");
+
+//     socket.emit("join_room", room.id, user?.firstName);
+//     socket.on("joined", (roomId: string) => {
+//       setRoomId(room.id);
+//     });
+
+//     return () => {
+//       socket.off("new_user");
+//     };
+//   }, [user?.id, socket]);
+
+//   useEffect(() => {
+//     if (socket) {
+//       return;
+//     }
+//     socket.emit("leave_room");
+//     setRoomId("");
+//   }, [setRoomId, socket]);
+
+//   return (
+//     <roomContext.Provider
+//       value={{
+//         x,
+//         y,
+//         bgRef,
+//         undoRef,
+//         redoRef,
+//         canvasRef,
+//         drawHistory,
+//         shouldDraw,
+//         historyPointer,
+
+//         minimapRef,
+//         selectionRefs,
+//       }}
+//     >
+//       {children}
+//     </roomContext.Provider>
+//   );
+// };
+
+// export default RoomContextProvider;
+
 import {
   createContext,
   Dispatch,
+  ReactChild,
   RefObject,
   SetStateAction,
   useContext,
@@ -12,14 +130,12 @@ import {
 } from "react";
 
 import { MotionValue, useMotionValue } from "framer-motion";
-
-import { COLORS_ARRAY } from "@/constants/colors";
-import { useUser } from "@clerk/nextjs";
-import { useSocket } from "./socket-provider";
-// import { useSetRoom, useRoom } from "@/common/recoil/room/room.hooks";
-import { Move, User } from "@/types";
-import { useRoomStore } from "@/lib/hooks/use-room-store";
 import { toast } from "sonner";
+import { useRoomStore } from "@/stores/use-room-store";
+import { useSocket } from "./socket-provider";
+import { COLORS_ARRAY } from "@/constants/colors";
+import { Move, User } from "@/types";
+import { useUser } from "@clerk/nextjs";
 
 export const roomContext = createContext<{
   x: MotionValue<number>;
@@ -30,30 +146,29 @@ export const roomContext = createContext<{
   bgRef: RefObject<HTMLCanvasElement>;
   selectionRefs: RefObject<HTMLButtonElement[]>;
   minimapRef: RefObject<HTMLCanvasElement>;
-  drawHistory: RefObject<any>;
-  historyPointer: RefObject<number | null>;
-  shouldDraw: RefObject<boolean>;
+  moveImage: { base64: string; x?: number; y?: number };
+  setMoveImage: Dispatch<
+    SetStateAction<{
+      base64: string;
+      x?: number | undefined;
+      y?: number | undefined;
+    }>
+  >;
 }>(null!);
 
-export const useRoom = () => {
-  return useContext(roomContext);
-};
-
-const RoomContextProvider = ({
-  children,
-  room,
-}: {
-  children: React.ReactNode;
-  room: any;
-}) => {
-  //   const setRoom = useSetRoom();
-  //   const { users } = useRoom();
-
-  //   const { handleAddUser, handleRemoveUser } = useSetUsers();
-
+const RoomContextProvider = ({ children }: { children: ReactChild }) => {
+  const { users } = useRoomStore();
   const { socket } = useSocket();
-
-  const { user } = useUser();
+  const {
+    setRoom,
+    addUser,
+    removeUser,
+    id,
+    myMoves,
+    usersMoves,
+    movesWithoutUser,
+  } = useRoomStore();
+  const r = useRoomStore();
 
   const undoRef = useRef<HTMLButtonElement>(null);
   const redoRef = useRef<HTMLButtonElement>(null);
@@ -61,50 +176,81 @@ const RoomContextProvider = ({
   const bgRef = useRef<HTMLCanvasElement>(null);
   const minimapRef = useRef<HTMLCanvasElement>(null);
   const selectionRefs = useRef<HTMLButtonElement[]>([]);
-  const drawHistory = useRef<any>([]);
-  const historyPointer = useRef<number>(0);
-  const shouldDraw = useRef<boolean>(false);
+  const { user } = useUser();
 
-  const { Room, addUser, removeUser } = useRoomStore();
-  // const { drawHistory } = Room;
+  const [moveImage, setMoveImage] = useState<{
+    base64: string;
+    x?: number;
+    y?: number;
+  }>({ base64: "" });
+
+  useEffect(() => {
+    if (moveImage.base64 && !moveImage.x && !moveImage.y)
+      setMoveImage({ base64: moveImage.base64, x: 50, y: 50 });
+  }, [moveImage]);
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  const { setRoom } = useRoomStore();
 
   useEffect(() => {
-    if (!user || !canvasRef.current) {
-      return;
-    }
+    if (!socket) return;
+    socket.on("room", (room, usersMovesToParse, usersToParse) => {
+      console.log("i gues");
+      const usersMoves = new Map<string, Move[]>(JSON.parse(usersMovesToParse));
+      const usersParsed = new Map<string, string>(JSON.parse(usersToParse));
 
-    const canvas = canvasRef.current;
-    const context = canvas.getContext("2d");
+      const newUsers = new Map<string, User>();
 
-    setRoom(room.id, room.name, room.userId);
-    socket.emit("joinRoom", room.id);
-    socket.on("new_user", () => {
-      addUser(user.id, user.firstName!, user.imageUrl);
-      toast(`${user.firstName} Joined.`);
-      // socket.emit("roomData", { drawings });
+      usersParsed.forEach((name, id) => {
+        if (id === socket.id) return;
+
+        const index = Array.from(usersParsed.keys()).indexOf(id);
+
+        const color = COLORS_ARRAY[index % COLORS_ARRAY.length];
+
+        newUsers.set(id, {
+          name,
+          color,
+        });
+      });
+
+      setRoom({
+        id,
+        myMoves,
+        users: newUsers,
+        usersMoves,
+        movesWithoutUser: room.drawed,
+      });
     });
 
-    socket.on("user_disconnected", () => {
-      removeUser(user.id);
-      toast(`${user.firstName} Left.`);
+    console.log(r);
+
+    socket.on("new_user", (userId: string, username: string) => {
+      toast(`${username} has joined the room.`);
+
+      addUser(userId, username);
     });
 
-    // drawHistory.forEach((drawing) => {
-    //   context.drawImage(drawing.image, drawing.x, drawing.y);
-    // });
-    // if (drawHistory) {
-    //   context?.putImageData(drawHistory, 0, 0);
-    // }
+    socket.on("user_disconnected", (userId: string) => {
+      toast(`${users.get(userId)?.name || "Anonymous"} has left the room.`);
+
+      removeUser(userId);
+    });
 
     return () => {
+      socket.off("room");
       socket.off("new_user");
       socket.off("user_disconnected");
     };
-  }, [user?.id]);
+  }, [
+    addUser,
+    removeUser,
+    setRoom,
+    users,
+    socket,
+    usersMoves,
+    movesWithoutUser,
+  ]);
 
   return (
     <roomContext.Provider
@@ -115,10 +261,8 @@ const RoomContextProvider = ({
         undoRef,
         redoRef,
         canvasRef,
-        drawHistory,
-        shouldDraw,
-        historyPointer,
-
+        setMoveImage,
+        moveImage,
         minimapRef,
         selectionRefs,
       }}
@@ -126,6 +270,10 @@ const RoomContextProvider = ({
       {children}
     </roomContext.Provider>
   );
+};
+
+export const useRoom = () => {
+  return useContext(roomContext);
 };
 
 export default RoomContextProvider;

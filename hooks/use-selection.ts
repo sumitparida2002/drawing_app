@@ -1,11 +1,11 @@
 import { useEffect, useMemo } from "react";
-
-import { DEFAULT_MOVE } from "@/constants/defaultMove";
-import { useSocket } from "@/providers/socket-provider";
+import { useCtx } from "./use-ctx";
+import { useToolboxStore } from "@/stores/use-toolbox-store";
 import { useRoom } from "@/providers/room-provider";
-import { useImageStore } from "./use-image-store";
 import { Move } from "@/types";
-import { useToolboxStore } from "./use-toolbox-store";
+import { useSocket } from "@/providers/socket-provider";
+import { toast } from "sonner";
+import { DEFAULT_MOVE } from "@/constants/defaultMove";
 
 let tempSelection = {
   x: 0,
@@ -15,15 +15,14 @@ let tempSelection = {
 };
 
 export const useSelection = (drawAllMoves: () => Promise<void>) => {
-  const { socket } = useSocket();
-  const options = useToolboxStore(); //Fix
+  const ctx = useCtx();
+  const options = useToolboxStore();
   const { selection } = options;
-  const { bgRef, selectionRefs, canvasRef } = useRoom();
-  const canvas = canvasRef.current;
-  const ctx = canvas?.getContext("2d");
-  const { addImage } = useImageStore();
+  const { bgRef, selectionRefs, setMoveImage } = useRoom();
+  const { socket } = useSocket();
 
   useEffect(() => {
+    if (!socket) return;
     const callback = async () => {
       await drawAllMoves();
 
@@ -59,7 +58,7 @@ export const useSelection = (drawAllMoves: () => Promise<void>) => {
     };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selection, ctx]);
+  }, [selection, ctx, socket]);
 
   const dimension = useMemo(() => {
     if (selection) {
@@ -186,10 +185,7 @@ export const useSelection = (drawAllMoves: () => Promise<void>) => {
           }),
         ])
         .then(() => {
-          // toast("Copied to clipboard!", {
-          //   position: "top-center",
-          //   theme: "colored",
-          // });
+          toast("Copied to clipboard!");
         });
   };
 
@@ -221,7 +217,7 @@ export const useSelection = (drawAllMoves: () => Promise<void>) => {
 
           if (base64) {
             createDeleteMove();
-            addImage({
+            setMoveImage({
               base64,
               x: Math.min(x, x + width),
               y: Math.min(y, y + height),
@@ -255,6 +251,6 @@ export const useSelection = (drawAllMoves: () => Promise<void>) => {
     makeBlob,
     selection,
     selectionRefs,
-    addImage,
+    setMoveImage,
   ]);
 };

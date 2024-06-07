@@ -1,15 +1,14 @@
 "use client";
 
-import { useRoom } from "@/providers/room-provider";
+import { useEffect } from "react";
+
 import { useSocket } from "@/providers/socket-provider";
 import { Move } from "@/types";
-import { useEffect } from "react";
-import { useRoomStore } from "./use-room-store";
+import { useRoomStore } from "@/stores/use-room-store";
 
 export const useSocketDraw = (drawing: boolean) => {
-  const { addMoveToUser, removeMoveFromUser } = useRoomStore();
-
   const { socket } = useSocket();
+  const { addMoveToUser, removeLastMoveFromUser, usersMoves } = useRoomStore();
 
   useEffect(() => {
     if (!socket) return;
@@ -17,7 +16,6 @@ export const useSocketDraw = (drawing: boolean) => {
     let userIdLater = "";
 
     socket.on("user_draw", (move, userId) => {
-      console.log("in draw 2");
       if (!drawing) {
         addMoveToUser(userId, move);
       } else {
@@ -38,11 +36,14 @@ export const useSocketDraw = (drawing: boolean) => {
   useEffect(() => {
     if (!socket) return;
     socket.on("user_undo", (userId) => {
-      removeMoveFromUser(userId);
+      console.log("what");
+      removeLastMoveFromUser(userId);
     });
+
+    console.log(usersMoves);
 
     return () => {
       socket.off("user_undo");
     };
-  }, [removeMoveFromUser, socket]);
+  }, [removeLastMoveFromUser, socket]);
 };

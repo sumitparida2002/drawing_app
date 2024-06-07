@@ -1,4 +1,4 @@
-import { useToolboxStore } from "@/lib/hooks/use-toolbox-store";
+import { useToolboxStore } from "@/stores/use-toolbox-store";
 import { useEffect } from "react";
 
 import { AiOutlineSelect } from "react-icons/ai";
@@ -10,8 +10,6 @@ const ModePicker = () => {
 
   useEffect(() => {
     clearSelection();
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
 
   return (

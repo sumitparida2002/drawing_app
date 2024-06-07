@@ -14,15 +14,13 @@ import { Input } from "../ui/input";
 import { ChatHeader } from "../Chat/chat-header";
 import { ChatInput } from "../Chat/chat-input";
 import { ChatMessages } from "../Chat/chat-messages";
-import { useRoomStore } from "@/lib/hooks/use-room-store";
+import { useRoomStore } from "@/stores/use-room-store";
 
 function ChatModal() {
-  const { id, name, userId } = useRoomStore();
+  const { id } = useRoomStore();
 
   const room = {
     id,
-    name,
-    userId,
   };
   const member = {
     id: "830d27bc-1d7d-4865-bb97-8cd4eff1f7d9",
@@ -38,11 +36,11 @@ function ChatModal() {
       </DialogTrigger>
       <DialogContent className="max-w-[60%] h-[80%] flex flex-col justify-between">
         <DialogHeader>
-          <ChatHeader name={room.name} type="room" />
+          <ChatHeader name={"Test-Hard"} type="room" />
         </DialogHeader>
         <ChatMessages
           member={member}
-          name={room.name}
+          name={"Test-Hard"}
           chatId={room.id}
           type="room"
           apiUrl="/api/messages"
@@ -54,7 +52,7 @@ function ChatModal() {
           paramValue={room.id}
         />
         <ChatInput
-          name={room.name}
+          name={"Test-Hard"}
           type="room"
           apiUrl="/api/socket/messages"
           query={{

@@ -1,7 +1,7 @@
 import { RgbaColor } from "react-colorful";
-import { useToolboxStore } from "../hooks/use-toolbox-store";
+import { useToolboxStore } from "../../stores/use-toolbox-store";
 import { useRoom } from "@/providers/room-provider";
-import { useRoomStore } from "../hooks/use-room-store";
+import { useRoomStore } from "../../stores/use-room-store";
 
 const getWidthAndHeight = (
   x: number,

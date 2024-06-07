@@ -3,23 +3,22 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { BsCursorFill } from "react-icons/bs";
 
-import { useBoardPosition } from "@/lib/hooks/useBoardPos";
-import { useRoomStore } from "@/lib/hooks/use-room-store";
+import { useRoomStore } from "@/stores/use-room-store";
+import { useBoardPosition } from "@/hooks/use-board-pos";
 import { useSocket } from "@/providers/socket-provider";
 
 const UserMouse = ({ userId }: { userId: string }) => {
-  const { Room } = useRoomStore();
-  const { users } = Room;
+  const { users } = useRoomStore();
   const boardPos = useBoardPosition();
   const { socket } = useSocket();
-
   const [msg, setMsg] = useState("");
   const [x, setX] = useState(boardPos.x.get());
   const [y, setY] = useState(boardPos.y.get());
   const [pos, setPos] = useState({ x: -1, y: -1 });
 
   useEffect(() => {
-    socket.on("mouse_moved", (newX: any, newY: any, socketIdMoved: string) => {
+    if (!socket) return;
+    socket.on("mouse_moved", (newX, newY, socketIdMoved) => {
       if (socketIdMoved === userId) {
         setPos({ x: newX, y: newY });
       }
@@ -40,7 +39,7 @@ const UserMouse = ({ userId }: { userId: string }) => {
       socket.off("mouse_moved");
       socket.off("new_msg", handleNewMsg);
     };
-  }, [userId]);
+  }, [userId, socket]);
 
   useEffect(() => {
     const unsubscribe = boardPos.x.onChange(setX);
@@ -57,7 +56,7 @@ const UserMouse = ({ userId }: { userId: string }) => {
       className={`pointer-events-none absolute top-0 left-0 z-20 text-blue-800 ${
         pos.x === -1 && "hidden"
       }`}
-      style={{ color: "violet" }}
+      style={{ color: users.get(userId)?.color }}
       animate={{ x: pos.x + x, y: pos.y + y }}
       transition={{ duration: 0.2, ease: "linear" }}
     >
@@ -67,7 +66,7 @@ const UserMouse = ({ userId }: { userId: string }) => {
           {msg}
         </p>
       )}
-      <p className="ml-2">{"Anonymous"}</p>
+      <p className="ml-2">{users.get(userId)?.name || "Anonymous"}</p>
     </motion.div>
   );
 };

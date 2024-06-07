@@ -1,33 +1,30 @@
-import { useEffect, useMemo } from "react";
-
-import { rgbaToString } from "@/lib/helpers/boardHelpers";
-
-// import { useSetSelection } from "@/common/recoil/options";
-
-import { useSocket } from "@/providers/socket-provider";
-import { Move } from "@/types";
-import { useRoomStore } from "./use-room-store";
-import { useSavedMovesStore } from "./saved-moves-store";
 import { useRoom } from "@/providers/room-provider";
+import { useRoomStore } from "@/stores/use-room-store";
+import { useSavedMovesStore } from "@/stores/use-saved-moves-store";
+import { useEffect, useMemo } from "react";
+import { useCtx } from "./use-ctx";
+import { useBackgroundStore } from "@/stores/use-background-store";
+import { useToolboxStore } from "@/stores/use-toolbox-store";
+import { Move } from "@/types";
+import { getStringFromRgba } from "@/lib/rgba";
 import { useSelection } from "./use-selection";
-import { useCtx } from "./useCtx";
+import { useSocket } from "@/providers/socket-provider";
 
 let prevMovesLength = 0;
 
 export const useMovesHandlers = (clearOnYourMove: () => void) => {
-  const { socket } = useSocket();
   const { canvasRef, minimapRef, bgRef } = useRoom();
-
+  const room = useRoomStore();
+  const { addMyMove, removeMyMove } = useRoomStore();
   const { addSavedMove, removeSavedMove } = useSavedMovesStore();
-  const { removeMyMove, addMyMove, usersMoves, movesWithoutUser, myMoves } =
-    useRoomStore();
-
-  const canvas = canvasRef.current;
   const ctx = useCtx();
-  //   const bg = useBackground();
-  //   const { clearSelection } = useSelection();
+  const bg = useBackgroundStore();
+  const { clearSelection } = useToolboxStore();
+  const { socket } = useSocket();
 
   const sortedMoves = useMemo(() => {
+    const { usersMoves, movesWithoutUser, myMoves } = room;
+
     const moves = [...movesWithoutUser, ...myMoves];
 
     usersMoves.forEach((userMoves) => moves.push(...userMoves));
@@ -35,7 +32,7 @@ export const useMovesHandlers = (clearOnYourMove: () => void) => {
     moves.sort((a, b) => a.timestamp - b.timestamp);
 
     return moves;
-  }, []);
+  }, [room]);
 
   const copyCanvasToSmall = () => {
     if (canvasRef.current && minimapRef.current && bgRef.current) {
@@ -61,7 +58,7 @@ export const useMovesHandlers = (clearOnYourMove: () => void) => {
   };
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => copyCanvasToSmall(), []);
+  useEffect(() => copyCanvasToSmall(), [bg]);
 
   const drawMove = (move: Move, image?: HTMLImageElement) => {
     const { path } = move;
@@ -73,8 +70,8 @@ export const useMovesHandlers = (clearOnYourMove: () => void) => {
     if (moveOptions.mode === "select") return;
 
     ctx.lineWidth = moveOptions.lineWidth;
-    ctx.strokeStyle = rgbaToString(moveOptions.lineColor);
-    ctx.fillStyle = rgbaToString(moveOptions.fillColor);
+    ctx.strokeStyle = getStringFromRgba(moveOptions.lineColor);
+    ctx.fillStyle = getStringFromRgba(moveOptions.fillColor);
     if (moveOptions.mode === "eraser")
       ctx.globalCompositeOperation = "destination-out";
     else ctx.globalCompositeOperation = "source-over";
@@ -160,13 +157,13 @@ export const useMovesHandlers = (clearOnYourMove: () => void) => {
     socket.on("your_move", (move) => {
       clearOnYourMove();
       addMyMove(move);
-      //   setTimeout(clearSelection, 100);
+      setTimeout(clearSelection, 100);
     });
 
     return () => {
       socket.off("your_move");
     };
-  }, [clearOnYourMove, addMyMove, socket]);
+  }, [clearOnYourMove, clearSelection, addMyMove, socket]);
 
   useEffect(() => {
     if (prevMovesLength >= sortedMoves.length || !prevMovesLength) {
@@ -193,7 +190,7 @@ export const useMovesHandlers = (clearOnYourMove: () => void) => {
     if (ctx) {
       const move = removeMyMove();
 
-      if (move?.options.mode === "select") console.log("hey");
+      if (move?.options.mode === "select") clearSelection();
       else if (move) {
         addSavedMove(move);
         socket.emit("undo");

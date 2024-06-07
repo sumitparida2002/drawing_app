@@ -7,9 +7,9 @@ import { Loader2, ServerCrash } from "lucide-react";
 
 import { ChatWelcome } from "./chat-welcome";
 import { ChatItem } from "./chat-item";
-import { useChatQuery } from "@/lib/hooks/use-chat-query";
-import { useChatSocket } from "@/lib/hooks/use-chat-socket";
-import { useChatScroll } from "@/lib/hooks/use-chat-scroll";
+import { useChatQuery } from "@/hooks/use-chat-query";
+import { useChatSocket } from "@/hooks/use-chat-socket";
+import { useChatScroll } from "@/hooks/use-chat-scroll";
 
 const DATE_FORMAT = "d MMM yyyy, HH:mm";
 

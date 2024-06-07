@@ -1,7 +1,7 @@
 "use client";
 
-import { useImageStore } from "@/lib/hooks/use-image-store";
-import { optimizeImage } from "@/lib/optimizeImage";
+import { optimizeImage } from "@/lib/optimize-image";
+import { useImageStore } from "@/stores/use-image-store";
 import { useEffect } from "react";
 
 import { BsFillImageFill } from "react-icons/bs";
@@ -16,10 +16,10 @@ const ImagePicker = () => {
         for (const item of items) {
           if (item.type.includes("image")) {
             const file = item.getAsFile();
-            // optimizeImage(file, (uri) => setImage(uri));
+
             optimizeImage(file, (uri) => {
-              const x = Math.random() * 500; // generate random x coordinate
-              const y = Math.random() * 500; // generate random y coordinate
+              const x = Math.random() * 500;
+              const y = Math.random() * 500;
               addImage(uri, x, y);
             });
           }
@@ -44,10 +44,9 @@ const ImagePicker = () => {
       if (fileInput && fileInput.files) {
         const file = fileInput.files[0];
 
-        // optimizeImage(file, (uri) => addImage(uri));
         optimizeImage(file, (uri) => {
-          const x = Math.random() * 500; // generate random x coordinate
-          const y = Math.random() * 500; // generate random y coordinate
+          const x = Math.random() * 500;
+          const y = Math.random() * 500;
           addImage(uri, x, y);
         });
       }

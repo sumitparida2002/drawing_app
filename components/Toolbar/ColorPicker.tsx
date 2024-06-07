@@ -5,27 +5,16 @@ import { RgbaColorPicker } from "react-colorful";
 import { BsPaletteFill } from "react-icons/bs";
 import { useClickAway } from "react-use";
 
-import { EntryAnimation } from "./animations/Entry.animations";
-import { useToolboxStore } from "@/lib/hooks/use-toolbox-store";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { useToolboxStore } from "@/stores/use-toolbox-store";
 
 const ColorPicker = () => {
-  const { changeColor, lineColor } = useToolboxStore();
-
-  const ref = useRef<HTMLDivElement>(null);
-
-  const [opened, setOpened] = useState(false);
-
-  // useClickAway(ref, () => setOpened(false));
+  const { changeColor, lineColor, mode } = useToolboxStore();
 
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button
-          className="btn-icon text-xl"
-          onClick={() => setOpened(!opened)}
-          // disabled={options.mode === "select"}
-        >
+        <button className="btn-icon text-xl" disabled={mode === "select"}>
           <BsPaletteFill />
         </button>
       </PopoverTrigger>
@@ -39,14 +28,6 @@ const ColorPicker = () => {
         />
       </PopoverContent>
     </Popover>
-    // <div className="relative flex items-center" ref={ref}>
-
-    //   <AnimatePresence>
-    // {/* {opened && (
-
-    // )} */}
-    //   </AnimatePresence>
-    // </div>
   );
 };
 

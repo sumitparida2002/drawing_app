@@ -6,8 +6,8 @@ import { motion } from "framer-motion";
 import { useInterval, useMouse } from "react-use";
 
 import { useSocket } from "@/providers/socket-provider";
-import { getPos } from "@/lib/getPos";
-import { useBoardPosition } from "@/lib/hooks/useBoardPos";
+import { useBoardPosition } from "@/hooks/use-board-pos";
+import { getPos } from "@/lib/get-pos";
 
 const MousePosition = () => {
   const { socket } = useSocket();
@@ -19,21 +19,12 @@ const MousePosition = () => {
 
   const { docX, docY } = useMouse(ref);
 
-  // const touchDevice = window.matchMedia("(pointer: coarse)").matches;
-
   useInterval(() => {
-    if (
-      prevPosition.current.x !== docX ||
-      prevPosition.current.y !== docY
-      // &&
-      // !touchDevice
-    ) {
+    if (prevPosition.current.x !== docX || prevPosition.current.y !== docY) {
       socket.emit("mouse_moved", getPos(docX, x), getPos(docY, y));
       prevPosition.current = { x: docX, y: docY };
     }
   }, 150);
-
-  // if (touchDevice) return null;
 
   return (
     <motion.div

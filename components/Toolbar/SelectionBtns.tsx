@@ -1,16 +1,13 @@
 "use client";
 
+import { useBoardPosition } from "@/hooks/use-board-pos";
+import { useRoom } from "@/providers/room-provider";
+import { useToolboxStore } from "@/stores/use-toolbox-store";
 import { useEffect, useState } from "react";
 
 import { AiOutlineDelete } from "react-icons/ai";
 import { BsArrowsMove } from "react-icons/bs";
 import { FiCopy } from "react-icons/fi";
-
-// import { useOptionsValue } from '@/common/recoil/options';
-
-import { useBoardPosition } from "@/lib/hooks/useBoardPos";
-import { useRoom } from "@/providers/room-provider";
-import { useToolboxStore } from "@/lib/hooks/use-toolbox-store";
 
 const SelectionBtns = () => {
   const { selection } = useToolboxStore();
